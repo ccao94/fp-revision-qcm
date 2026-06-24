@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QCM — Functional Programming with Scala</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F3EE; --bg-soft: #EAE6DD; --card: #FFFFFF;
+    --ink: #2C2824; --ink-soft: #736A5F; --line: #E0D8C8;
+    --primary: #6B4C9A; --primary-d: #573D85;
+    --ok: #2E8B6F; --ok-soft: #E4F2EC; --bad: #C0492F; --bad-soft: #FBE9E3;
+    --shadow: 0 1px 2px rgba(44,40,36,.04), 0 10px 30px rgba(44,40,36,.07);
+    --c-fp: #6B4C9A; --c-scala: #DC4B2F; --c-rec: #2E7D6F;
+    --c-adt: #B8600B; --c-for: #1A6B8A; --c-types: #8B4062;
+    --c-lambda: #4A6741;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink); min-height: 100vh;
+    font-family: "Figtree", sans-serif; font-size: 16.5px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(circle at 8% -8%, rgba(107,76,154,.06), transparent 38%),
+                      radial-gradient(circle at 94% 0%, rgba(220,75,47,.04), transparent 42%);
+  }
+  header { text-align: center; padding: 34px 20px 8px; }
+  .kicker { font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  h1 { font-family: "Fraunces", serif; font-weight: 600; font-size: clamp(23px, 4.4vw, 32px); margin: 4px 0; letter-spacing: -.01em; }
+  .sub { color: var(--ink-soft); font-size: 15px; }
+  main { max-width: 700px; margin: 0 auto; padding: 18px 20px 80px; }
+  .anim { animation: fade .4s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .start-card { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 26px 24px; }
+  .start-card p.lead { color: var(--ink-soft); margin-bottom: 20px; }
+  .modes { display: grid; gap: 12px; }
+  .mode {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%; text-align: left; cursor: pointer; border: 1.5px solid var(--line);
+    background: var(--bg); border-radius: 14px; padding: 16px 18px;
+    font-family: "Figtree"; font-size: 16.5px; font-weight: 600; color: var(--ink);
+    transition: transform .12s, border-color .15s, background .15s;
+  }
+  .mode:hover { transform: translateY(-2px); border-color: var(--accent, var(--primary)); background: #fff; }
+  .mode .label { display: flex; align-items: center; gap: 11px; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent, var(--primary)); flex: 0 0 auto; }
+  .mode .count { font-size: 13px; font-weight: 600; color: var(--ink-soft); background: var(--bg-soft); padding: 4px 10px; border-radius: 999px; }
+  .m-all { --accent: var(--primary); }
+  .m-fp { --accent: var(--c-fp); }
+  .m-scala { --accent: var(--c-scala); }
+  .m-rec { --accent: var(--c-rec); }
+  .m-adt { --accent: var(--c-adt); }
+  .m-for { --accent: var(--c-for); }
+  .m-types { --accent: var(--c-types); }
+  .m-lambda { --accent: var(--c-lambda); }
+
+  .bar-wrap { height: 7px; background: var(--bg-soft); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+  .bar { height: 100%; width: 0; background: var(--primary); border-radius: 99px; transition: width .35s ease; }
+  .meta { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; color: var(--ink-soft); margin-bottom: 18px; font-weight: 600; }
+  .qcard { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 24px 24px 22px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 5px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .pill-multi { background: #FFFBEB; color: #B45309; border: 1px solid #FEF3C7; margin-left: 8px; }
+  .qtext { font-family: "Fraunces", serif; font-weight: 600; font-size: 20px; line-height: 1.3; margin-bottom: 10px; letter-spacing: -.01em; }
+  .qcode { background: #2B2B2B; color: #E6DB74; font-family: "Courier New", monospace; font-size: 14px; line-height: 1.55; padding: 14px 16px; border-radius: 10px; margin-bottom: 16px; white-space: pre-wrap; overflow-x: auto; }
+  .qcode .kw { color: #F92672; } .qcode .fn { color: #A6E22E; } .qcode .cm { color: #75715E; }
+  .qcode .tp { color: #66D9EF; } .qcode .st { color: #E6DB74; } .qcode .nm { color: #AE81FF; }
+  .opts { display: grid; gap: 10px; }
+  .opt {
+    display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left; cursor: pointer;
+    border: 1.5px solid var(--line); background: var(--bg); border-radius: 13px; padding: 13px 15px;
+    font-family: "Figtree"; font-size: 15.5px; color: var(--ink); transition: border-color .12s, background .12s, transform .1s;
+  }
+  .opt code { font-family: "Courier New", monospace; font-size: 14px; background: #f0ebe0; padding: 1px 5px; border-radius: 4px; }
+  .opt:hover:not(:disabled) { border-color: var(--primary); transform: translateY(-1px); }
+  .opt.selected { border-color: var(--primary); background: #EDE8F5; }
+  .opt.selected .key { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .opt:disabled { cursor: default; transform: none; }
+  .opt .key { flex: 0 0 auto; width: 25px; height: 25px; border-radius: 7px; background: #fff; border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13.5px; color: var(--ink-soft); transition: all 0.2s; }
+  .opt.correct { background: var(--ok-soft); border-color: var(--ok); }
+  .opt.correct .key { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+  .opt.wrong .key { background: var(--bad); border-color: var(--bad); color: #fff; }
+
+  .explain-box { margin-top: 14px; padding: 13px 15px; background: #F8F4FF; border: 1.5px solid #D4C4EE; border-radius: 12px; font-size: 14.5px; color: #4A3670; line-height: 1.5; }
+  .explain-box strong { color: #6B4C9A; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; border: none; font-family: "Figtree"; font-weight: 600; font-size: 16px; border-radius: 12px; padding: 13px 22px; transition: transform .12s, background .15s; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-d); transform: translateY(-1px); }
+  .btn-primary:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; transform: none; }
+  .btn-ghost { background: transparent; color: var(--ink-soft); border: 1.5px solid var(--line); }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink-soft); }
+  .controls-row { margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px; }
+
+  .score-card { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 30px 26px; text-align: center; }
+  .ring { width: 150px; height: 150px; margin: 6px auto 14px; }
+  .score-num { font-family: "Fraunces", serif; font-weight: 600; font-size: 40px; line-height: 1; }
+  .score-pct { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
+  .verdict-big { font-family: "Fraunces", serif; font-size: 22px; font-weight: 600; margin: 6px 0 4px; }
+  .msg { color: var(--ink-soft); margin-bottom: 22px; }
+  .res-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .review-title { font-family: "Fraunces", serif; font-weight: 600; font-size: 18px; margin: 30px 0 12px; color: var(--bad); }
+  .rev-item { background: var(--card); border-radius: 13px; box-shadow: var(--shadow); padding: 15px 17px; margin-bottom: 11px; border-left: 4px solid var(--bad); text-align: left; }
+  .rev-item .rq { font-weight: 600; margin-bottom: 7px; }
+  .rev-item .ra { font-size: 14.5px; margin-bottom: 3px; }
+  .rev-item .ra b { color: var(--ok); }
+  .rev-item .yours { font-size: 14px; color: var(--bad); }
+  .rev-item .rexplain { font-size: 13.5px; color: #4A3670; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+
+  .lex-fab { position: fixed; top: 16px; right: 16px; z-index: 50; cursor: pointer; border: 1.5px solid var(--line); background: #fff; color: var(--primary); font-family: "Figtree"; font-weight: 700; font-size: 14px; padding: 9px 14px; border-radius: 999px; box-shadow: 0 4px 14px rgba(44,40,36,.12); transition: transform .12s, background .15s; }
+  .lex-fab:hover { transform: translateY(-1px); background: var(--bg); }
+  .lex-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(44,40,36,.42); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; padding: 5vh 16px; }
+  .lex-overlay.open { display: flex; animation: fade .25s ease both; }
+  .lex-modal { background: var(--card); border-radius: 18px; width: 100%; max-width: 640px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(44,40,36,.32); animation: pop .28s cubic-bezier(.2,.8,.3,1.1) both; }
+  @keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+  .lex-modal-head { position: relative; padding: 18px 18px 14px; border-bottom: 1px solid var(--line); }
+  .lex-modal-title { font-family: "Fraunces", serif; font-weight: 600; font-size: 20px; color: var(--primary); }
+  .lex-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border: none; background: var(--bg-soft); color: var(--ink-soft); border-radius: 10px; font-size: 22px; line-height: 1; cursor: pointer; transition: background .15s; }
+  .lex-close:hover { background: #ECE3D4; color: var(--ink); }
+  .lex-list { overflow-y: auto; padding: 16px 18px; }
+  .cheat-cat { margin-bottom: 20px; }
+  .cheat-cat-title { font-family: "Fraunces", serif; font-size: 16px; color: var(--primary); border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 8px; }
+  .cheat-cat ul { list-style: none; padding-left: 8px; }
+  .cheat-cat li { font-size: 14.5px; color: var(--ink); margin-bottom: 6px; position: relative; padding-left: 14px; }
+  .cheat-cat li::before { content: "•"; color: var(--primary); position: absolute; left: 0; font-weight: bold; }
+  @media(max-width:560px){ main{padding:14px 15px 70px} .qcard,.start-card,.score-card{padding:20px 18px} .lex-fab{top:12px; right:12px; padding:8px 12px; font-size:13px} .qcode{font-size:12.5px; padding:10px 12px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Entraînement · DS Preparation</div>
+  <h1>Functional Programming with Scala</h1>
+  <div class="sub">M1 EFREI — Révisions complètes</div>
+</header>
+<main id="app"></main>
+<button id="lexFab" class="lex-fab">📚 Cheat Sheet</button>
+<div id="lexModal" class="lex-overlay" aria-hidden="true">
+  <div class="lex-modal" role="dialog">
+    <div class="lex-modal-head">
+      <div class="lex-modal-title">📚 Anti-Sèche</div>
+      <button id="lexClose" class="lex-close">×</button>
+    </div>
+    <div id="lexList" class="lex-list"></div>
+  </div>
+</div>
+
+<script>
+const allQuestions = [
+
+  // ===== FP PRINCIPLES =====
+  { cat:"FP Principles", q:"A pure function must satisfy two conditions. Which pair is correct?", opts:["Same input → same output, and it can read files","Same input → same output, and no side effects","It returns Unit, and it uses val only","It uses recursion, and it avoids var"], ans:[1], multi:false, explain:"A pure function (1) always returns the same output for the same input and (2) has zero side effects: no I/O, no mutation, no hidden state." },
+
+  { cat:"FP Principles", q:"Which of these functions is pure?", code:"def a(x: Int): Int = x * x\ndef b(x: Int): Unit = println(x)\ndef c(x: Int): Int = { var y = x; y += 1; y }\ndef d(x: Int): Long = System.currentTimeMillis() + x", opts:["<code>a</code> — it only depends on its input","<code>b</code> — println is harmless","<code>c</code> — the var is local so it's fine","<code>d</code> — it always returns a Long"], ans:[0], multi:false, explain:"a is pure: same input always gives the same output, no side effects. b has I/O (println). c uses a local var, which technically doesn't leak state, but function c IS actually pure in practice — however a is the clearest example. d depends on system time (different every call)." },
+
+  { cat:"FP Principles", q:"What does 'referentially transparent' mean?", opts:["The function's source code is visible","The function can be replaced by its return value without changing the program","The function uses transparent types","The function has no return type"], ans:[1], multi:false, explain:"Referential transparency means you can substitute the function call with its result value (and vice versa) without affecting program behavior. This is a direct consequence of purity." },
+
+  { cat:"FP Principles", q:"In FP, why must every <code>if</code> have an <code>else</code>?", opts:["It's a Scala compiler requirement for all code","Because if without else is a statement, not an expression — FP only uses expressions","To avoid null pointer exceptions","Because the compiler cannot infer types otherwise"], ans:[1], multi:false, explain:"FP works exclusively with expressions (code that returns a value). An if without else doesn't always return a value — it's a statement. FP requires both branches to guarantee a returned value." },
+
+  { cat:"FP Principles", q:"Which statement about immutability is FALSE?", opts:["Immutable data is easier to reason about","Immutability enables safe concurrency","Immutable data structures are always more efficient than mutable ones","Modifying immutable data requires creating a new copy"], ans:[2], multi:false, explain:"Immutability can be LESS efficient for large data structures or frequent updates because every modification creates a new copy. The trade-off is safety and predictability vs. performance." },
+
+  // ===== SCALA FUNDAMENTALS =====
+  { cat:"Scala Basics", q:"What does this code print?", code:"val squareVal: Int => Int = {\n  print(\"A\")\n  x => x * x\n}\nprint(\"B\")\nsquareVal(3)\nsquareVal(4)", opts:["ABAB","AB","ABB","A is printed at definition, B at the print call — output: AB"], ans:[3], multi:false, explain:"val evaluates its body ONCE at definition time, printing A. Then B is printed. The two calls to squareVal don't re-evaluate the block — the function x => x*x was already stored. Output: AB." },
+
+  { cat:"Scala Basics", q:"What is the output?", code:"def myDef: Int = { print(\"D\"); 42 }\nlazy val myLazy: Int = { print(\"L\"); 42 }\nval myVal: Int = { print(\"V\"); 42 }\n\nprintln(\"---\")\nmyDef\nmyDef\nmyLazy\nmyLazy", opts:["V---DDLL","V---DDL","---VDDLL","V---DL"], ans:[1], multi:false, explain:"val evaluates immediately → prints V. Then --- is printed. def re-evaluates each call → DD. lazy val evaluates on first access only → L (second access uses cached value). Total: V---DDL." },
+
+  { cat:"Scala Basics", q:"What is the difference between call-by-value and call-by-name?", code:"def byValue(t: Long): Long = { t; t }\ndef byName(t: => Long): Long = { t; t }", opts:["byValue evaluates t once before entering; byName evaluates t each time it's used in the body","They behave identically","byName evaluates t once; byValue evaluates t each time","byValue is for primitives; byName is for objects"], ans:[0], multi:false, explain:"Call-by-value (t: Long) evaluates the argument once before the function runs. Call-by-name (t: => Long) re-evaluates the expression every time t appears in the body. With a side-effecting expression like Random(), byName would produce different values for each use of t." },
+
+  { cat:"Scala Basics", q:"What does <code>val</code> guarantee?", opts:["The object cannot be mutated","The reference cannot be reassigned, but the object itself might still be mutable","The variable is thread-safe","The value is computed lazily"], ans:[1], multi:false, explain:"val prevents reassignment of the reference. But if the object is mutable (e.g. ListBuffer), its internal state can still change. val ys = ListBuffer(1,2); ys.append(3) compiles fine — ys still points to the same ListBuffer." },
+
+  { cat:"Scala Basics", q:"Which expression is valid Scala for <code>1 + 2</code>?", opts:["<code>1.+(2)</code>","<code>+(1, 2)</code>","<code>Int.add(1, 2)</code>","<code>1.add(2)</code>"], ans:[0], multi:false, explain:"In Scala, operators are methods. 1 + 2 is syntactic sugar for 1.+(2). The + is a method defined on Int. Infix notation: a method with one parameter can be called as a op b instead of a.op(b)." },
+
+  // ===== FUNCTIONS =====
+  { cat:"Functions", q:"What does this code evaluate to?", code:"def sumOf(x: Int, y: Int, f: Int => Int): Int = f(x) + f(y)\nsumOf(3, 4, x => x * x)", opts:["7","12","25","49"], ans:[2], multi:false, explain:"f = x => x * x. f(3) = 9, f(4) = 16. 9 + 16 = 25. sumOf is a higher-order function because it takes another function (f) as a parameter." },
+
+  { cat:"Functions", q:"What is currying?", opts:["Calling a function with too many arguments","Transforming (A, B) => C into A => B => C — a chain of single-parameter functions","A way to make functions impure","Renaming function parameters"], ans:[1], multi:false, explain:"Currying transforms a multi-parameter function into a chain of functions each taking one parameter. This enables partial application: fixing some arguments to get a new function waiting for the rest." },
+
+  { cat:"Functions", q:"What does <code>repeatTwo</code> evaluate to?", code:"def repeat(n: Int)(m: String): String =\n  if n <= 0 then \"\" else m + repeat(n-1)(m)\n\nval repeatTwo: String => String = repeat(2)(_)\nrepeatTwo(\"ha\")", opts:["\"ha\"","\"haha\"","\"hahaha\"","Compile error: cannot partially apply"], ans:[1], multi:false, explain:"repeat(2)(_) fixes the first parameter list to 2, returning a function String => String. Calling repeatTwo(\"ha\") is equivalent to repeat(2)(\"ha\"), which concatenates \"ha\" twice." },
+
+  { cat:"Functions", q:"Which line converts an uncurried function to its curried form?", code:"def add(x: Int, y: Int): Int = x + y", opts:["<code>val c = add.curried</code>","<code>val c = add.uncurried</code>","<code>val c = Function.curried(add)</code>","<code>val c = add.partial</code>"], ans:[0], multi:false, explain:".curried is a method on Function2 (and other FunctionN) that converts (A, B) => C to A => B => C. The reverse is Function.uncurried(f)." },
+
+  { cat:"Functions", q:"What is a closure?", opts:["A function that has been garbage collected","A function that captures variables from its enclosing scope","A function that runs in a separate thread","A function that cannot be called more than once"], ans:[1], multi:false, explain:"A closure captures variables from outside its own parameter list. For example: val factor = 2; val times2 = (x: Int) => x * factor — times2 'closes over' the variable factor from the outer scope." },
+
+  // ===== RECURSION =====
+  { cat:"Recursion", q:"Why does <code>factorial(50000)</code> crash with StackOverflowError?", code:"def factorial(n: Int): BigInt =\n  if n <= 0 then BigInt(1)\n  else BigInt(n) * factorial(n - 1)", opts:["BigInt cannot hold such a large number","Each recursive call adds a stack frame; 50000 frames exceed the JVM stack size","The if condition is wrong","Scala does not support recursion beyond 10000 calls"], ans:[1], multi:false, explain:"Each call to factorial waits for the recursive call to return before multiplying. This means 50000 stack frames accumulate simultaneously. The JVM has a limited stack size, so it overflows." },
+
+  { cat:"Recursion", q:"What makes a recursive call 'tail-recursive'?", opts:["It uses @tailrec annotation","The recursive call is the very last operation — nothing happens after it returns","It uses an inner helper function","It calls itself at most once"], ans:[1], multi:false, explain:"A call is tail-recursive when the recursive call is the LAST operation in the function. No computation (like multiplication) wraps around it. The @tailrec annotation asks the compiler to VERIFY this — it doesn't make it tail-recursive." },
+
+  { cat:"Recursion", q:"Which version is tail-recursive?", code:"// Version A\ndef factA(n: Int): BigInt =\n  if n <= 0 then 1 else n * factA(n-1)\n\n// Version B\ndef factB(n: Int): BigInt =\n  @tailrec\n  def loop(k: Int, acc: BigInt): BigInt =\n    if k <= 0 then acc\n    else loop(k-1, acc * k)\n  loop(n, 1)", opts:["Version A","Version B","Both","Neither"], ans:[1], multi:false, explain:"In A, the last operation is n * factA(n-1) — the multiplication happens AFTER the recursive call returns. In B, loop(k-1, acc * k) is the last operation — the multiplication is done IN the argument, before the call. B is tail-recursive." },
+
+  { cat:"Recursion", q:"What is the role of the accumulator in tail recursion?", opts:["It counts the number of recursive calls","It stores the partial result so the recursive call can be the last operation","It prevents stack overflow by limiting recursion depth","It replaces the return type"], ans:[1], multi:false, explain:"The accumulator carries the intermediate result forward. Instead of waiting for recursive calls to return and then combining, you build the result as you go and pass it down. When you hit the base case, the accumulator IS the final answer." },
+
+  { cat:"Recursion", q:"Why is naive Fibonacci more expensive than factorial?", opts:["Fibonacci uses bigger numbers","Fibonacci makes 2 recursive calls per level (exponential tree) while factorial makes 1 (linear chain)","Fibonacci has more base cases","Fibonacci cannot use BigInt"], ans:[1], multi:false, explain:"factorial(n) calls factorial(n-1) once — O(n) calls total. fibonacci(n) calls fibonacci(n-1) AND fibonacci(n-2) — creating a binary tree of calls, O(2^n). Many sub-problems are recomputed redundantly." },
+
+  { cat:"Recursion", q:"How does the tail-recursive Fibonacci carry state?", code:"def fibTR(n: Int): BigInt =\n  @tailrec\n  def loop(i: Int, prev: BigInt, curr: BigInt): BigInt =\n    if i <= 0 then prev\n    else loop(i-1, curr, prev + curr)\n  loop(n, 0, 1)", opts:["One accumulator for the sum","Two accumulators: prev and curr slide forward like a window over the sequence","A list that stores all computed values","A mutable variable updated in each step"], ans:[1], multi:false, explain:"Instead of branching into two recursive calls, fibTR iterates forward: prev becomes curr, curr becomes prev+curr. At step i, prev holds fib(n-i) and curr holds fib(n-i+1). This is O(n) time and constant stack." },
+
+  // ===== ADT & PATTERN MATCHING =====
+  { cat:"ADT & Patterns", q:"What is an Algebraic Data Type (ADT)?", opts:["A class with algebraic operations like + and *","A sealed trait with case classes defining all possible variants","An enum that can only hold integers","A generic type with type bounds"], ans:[1], multi:false, explain:"An ADT is a sealed trait (or enum) plus case classes for each variant. 'Sealed' means all subtypes are defined in the same file — the compiler knows every case and can check exhaustiveness in pattern matching." },
+
+  { cat:"ADT & Patterns", q:"What does this evaluate to?", code:"sealed trait Tree\ncase class Leaf(v: Int) extends Tree\ncase class Node(v: Int, l: Tree, r: Tree) extends Tree\n\nval t: Tree = Node(1, Leaf(20), Leaf(22))\n\nt match\n  case Node(_, Leaf(x), Leaf(y)) => x + y\n  case Leaf(v) => v\n  case _ => -1", opts:["1","42","20","-1"], ans:[1], multi:false, explain:"t is Node(1, Leaf(20), Leaf(22)). The first case matches: _ ignores the 1, x captures 20, y captures 22. Result: 20 + 22 = 42." },
+
+  { cat:"ADT & Patterns", q:"What does this pattern guard do?", code:"leaf match\n  case Leaf(v) if v > 10 => \"big\"\n  case Leaf(v) => \"small\"\n  case _ => \"not a leaf\"", opts:["It checks if v is greater than 10 BEFORE extracting it","It adds a boolean condition to the case — the case only matches if the guard is true","It filters the entire match expression","It throws an exception if v <= 10"], ans:[1], multi:false, explain:"A pattern guard (if condition after the pattern) adds an extra boolean check. The case only matches if BOTH the pattern matches AND the guard is true. If the guard fails, Scala tries the next case." },
+
+  { cat:"ADT & Patterns", q:"What happens with a non-exhaustive match on a sealed trait?", opts:["Compile error — sealed traits require all cases","Compile warning, and MatchError at runtime if an unmatched value is encountered","Nothing — Scala ignores missing cases","The default case is automatically added"], ans:[1], multi:false, explain:"With sealed traits, the compiler WARNS about missing cases (not an error). At runtime, if a value doesn't match any case, a MatchError is thrown. Always add case _ as a catch-all or cover every variant." },
+
+  { cat:"ADT & Patterns", q:"What is the difference between <code>==</code> and <code>eq</code> on case classes?", code:"val l1 = Leaf(42)\nval l2 = Leaf(42)\nl1 == l2\nl1 eq l2", opts:["Both return true","Both return false","== is true (structural equality), eq is false (different objects in memory)","== is false, eq is true"], ans:[2], multi:false, explain:"Case classes auto-generate equals based on field values (structural equality). == uses equals, so Leaf(42) == Leaf(42) is true. eq checks referential identity (same JVM object), which is false since l1 and l2 are distinct instances." },
+
+  { cat:"ADT & Patterns", q:"What does <code>.copy()</code> do on a case class?", opts:["Creates a deep clone of the object","Creates a new instance with some fields changed, original unchanged","Copies the object to a new memory location","Converts the case class to a tuple"], ans:[1], multi:false, explain:"copy() creates a new instance where you can override specific fields. The original object is untouched. Example: hero.copy(power = \"Flight\") returns a new object with a different power." },
+
+  // ===== ENUM =====
+  { cat:"ADT & Patterns", q:"What built-in methods do Scala 3 enums provide?", opts:["<code>.ordinal</code>, <code>.toString</code>, <code>.values</code>, <code>.fromOrdinal</code>, <code>.valueOf</code>","Only <code>.toString</code>","<code>.name</code> and <code>.id</code> (like Java)","No built-in methods"], ans:[0], multi:false, explain:"Scala 3 enums come with ordinal (position index), toString (name), values (array of all cases), fromOrdinal(n) and valueOf(name) for lookup. Enums can also have parameters and methods." },
+
+  // ===== FOR COMPREHENSIONS =====
+  { cat:"For Comprehensions", q:"What is a for-comprehension syntactic sugar for?", opts:["A while loop with a counter","Chained calls to <code>.flatMap</code>, <code>.map</code>, and <code>.withFilter</code>","A SQL-like query language","Pattern matching on collections"], ans:[1], multi:false, explain:"The Scala compiler translates for/yield into flatMap (for non-last generators), withFilter (for if guards), and map (for the last generator + yield). It's not a loop — it's an expression that returns a value." },
+
+  { cat:"For Comprehensions", q:"Rewrite this for-comprehension without syntactic sugar:", code:"for {\n  x <- xs if x % 2 == 0\n  y <- ys\n} yield x + y", opts:["<code>xs.map(x => ys.map(y => x + y))</code>","<code>xs.filter(_ % 2 == 0).flatMap(x => ys.map(y => x + y))</code>","<code>xs.flatMap(x => ys.filter(_ % 2 == 0).map(y => x + y))</code>","<code>xs.flatMap(x => ys.flatMap(y => x + y))</code>"], ans:[1], multi:false, explain:"if guard → .filter (or .withFilter). First generator with more steps after → .flatMap. Last generator before yield → .map. So: xs.filter(x => x%2==0).flatMap(x => ys.map(y => x+y))." },
+
+  { cat:"For Comprehensions", q:"Which methods must a type implement to support for-comprehensions with yield?", opts:["Only <code>foreach</code>","<code>map</code> and <code>flatMap</code> (plus <code>withFilter</code> for guards)","<code>filter</code> and <code>reduce</code>","<code>head</code> and <code>tail</code>"], ans:[1], multi:false, explain:"map is needed for yield with a single generator. flatMap is needed when there are multiple generators. withFilter is needed for if guards. foreach replaces map when there's no yield." },
+
+  { cat:"For Comprehensions", q:"What does <code>.flatMap</code> do compared to <code>.map</code>?", opts:["They are identical","map transforms each element; flatMap transforms each element into a collection then flattens one level","flatMap is the lazy version of map","flatMap works only on Option, not on List"], ans:[1], multi:false, explain:"map(f) applies f to each element: List(1,2).map(x => List(x,x)) gives List(List(1,1), List(2,2)). flatMap does the same then flattens: List(1,2).flatMap(x => List(x,x)) gives List(1,1,2,2)." },
+
+  { cat:"For Comprehensions", q:"What does this evaluate to?", code:"Cons(1, Cons(2, Cons(3, Empty)))\n  .withFilter(_ % 2 == 1)\n  .map(x => x * x)", opts:["Cons(1, Cons(4, Cons(9, Empty)))","Cons(1, Cons(9, Empty))","Cons(4, Empty)","Empty"], ans:[1], multi:false, explain:"withFilter keeps only odd numbers: 1, 3 (2 is discarded). Then map squares them: 1*1=1, 3*3=9. Result: Cons(1, Cons(9, Empty))." },
+
+  { cat:"For Comprehensions", q:"In MyList, why does <code>map</code> need <code>.reverse()</code> at the end?", opts:["Because Scala lists are always reversed","Because the tail-recursive helper builds the list backwards with Cons(f(head), accumulator) — prepending reverses the order","Because reverse makes the function pure","Because map must sort the list"], ans:[1], multi:false, explain:"The accumulator pattern prepends each transformed element: for [1,2,3], accumulator goes Empty→Cons(1,E)→Cons(2,Cons(1,E))→Cons(3,Cons(2,Cons(1,E))). That's [3,2,1] — reversed. So we .reverse() at the end to get [1,2,3]." },
+
+  // ===== TYPE CLASSES =====
+  { cat:"Type Classes", q:"What is a type class?", opts:["A class that has a type parameter","A trait that defines operations for a generic type, with instances provided via <code>given</code> instead of inheritance","A final class that cannot be extended","A class that only works with primitive types"], ans:[1], multi:false, explain:"A type class is a trait like Monoid[A] that defines abstract operations. Instead of having each type extend Monoid, you provide separate given instances. The compiler resolves the right instance based on the type parameter." },
+
+  { cat:"Type Classes", q:"What does this print?", code:"trait Monoid[A]:\n  def add(x: A, y: A): A\n  def unit: A\n\ngiven Monoid[Int] with\n  def add(x: Int, y: Int) = x + y\n  def unit = 0\n\ndef sumList[A](xs: List[A])(using m: Monoid[A]): A =\n  if xs.isEmpty then m.unit\n  else m.add(xs.head, sumList(xs.tail))\n\nsumList(List(3, 7, 5))", opts:["0","15","List(3, 7, 5)","Compile error: no Monoid for Int"], ans:[1], multi:false, explain:"The compiler finds the given Monoid[Int] instance. sumList folds the list with add: 3+7+5 = 15. The using clause lets the compiler pass the Monoid instance automatically — you don't write sumList(list)(IntMonoid)." },
+
+  { cat:"Type Classes", q:"What is the Scala 3 equivalent of Scala 2's <code>implicit val</code>?", opts:["<code>given</code>","<code>val</code>","<code>lazy val</code>","<code>override val</code>"], ans:[0], multi:false, explain:"Scala 3 replaced implicit val/def with given (to provide instances) and using (to consume them). given declares a contextual instance the compiler can resolve automatically where a using parameter is declared." },
+
+  // ===== OPTION / TRY / EITHER =====
+  { cat:"Option / Try / Either", q:"What does this evaluate to?", code:"val r: Option[Int] = for {\n  x <- Some(1)\n  y <- None\n  z <- Some(3)\n} yield x + y + z", opts:["Some(4)","None","Some(1)","Throws NullPointerException"], ans:[1], multi:false, explain:"For-comprehensions on Option short-circuit on None. When y <- None is encountered, the rest is skipped entirely. The result is None. This is the power of Option: failure propagates automatically without try/catch." },
+
+  { cat:"Option / Try / Either", q:"What is the difference between <code>map</code> and <code>flatMap</code> on Option?", code:"Some(1).map(x => Some(x + 1))\nSome(1).flatMap(x => Some(x + 1))", opts:["map returns Some(Some(2)), flatMap returns Some(2)","Both return Some(2)","map returns Some(2), flatMap returns Some(Some(2))","Both return 2"], ans:[0], multi:false, explain:"map wraps the result in another Option: Some(Some(2)) — nested. flatMap flattens one level: Some(2). When your transformation function returns an Option, use flatMap to avoid nesting." },
+
+  { cat:"Option / Try / Either", q:"In <code>Either[String, Int]</code>, which side represents success by convention?", opts:["Left","Right","Both can be success","Neither"], ans:[1], multi:false, explain:"By convention, Right = success (right = correct) and Left = error/failure. map and flatMap operate on the Right side. If the value is Left, operations are skipped (like None for Option)." },
+
+  { cat:"Option / Try / Either", q:"Which types support for-comprehensions because they implement map/flatMap?", opts:["Only List","List, Option, Try, Either, Future — any type with map and flatMap","Only collections","Only Option and Try"], ans:[1], multi:false, explain:"For-comprehensions are not collection-specific. ANY type that defines map, flatMap, and optionally withFilter works. This includes List, Option, Try, Either, Future, and custom types like MyList." },
+
+  { cat:"Option / Try / Either", q:"What is <code>None.getOrElse(42)</code>?", opts:["None","Some(42)","42","Throws NoSuchElementException"], ans:[2], multi:false, explain:"getOrElse provides a default value when the Option is None. None.getOrElse(42) returns 42 (an Int, not Some(42)). On Some(x), getOrElse returns x." },
+
+  // ===== NOTHING / NULL / UNIT =====
+  { cat:"Option / Try / Either", q:"Match each to its meaning: <code>Nil</code>, <code>None</code>, <code>Nothing</code>, <code>Unit</code>, <code>null</code>", opts:["Nil=empty List, None=empty Option, Nothing=bottom type (zero instances), Unit=void, null=Java legacy","They are all equivalent to null","Nil=Option, None=List, Nothing=null, Unit=empty","Nothing=empty List, Nil=bottom type, None=void"], ans:[0], multi:false, explain:"These are all different. Nil = List[Nothing] (empty list). None = Option[Nothing] (absent value). Nothing = bottom type with zero instances, subtype of everything. Unit = () (like Java void). null = Java legacy, never use in FP." },
+
+  // ===== VARIANCE & TYPE BOUNDS =====
+  { cat:"Variance & Generics", q:"Given <code>Python <: Animal</code>, what is true for <code>class Box[A]</code> (invariant)?", opts:["Box[Python] <: Box[Animal]","Box[Animal] <: Box[Python]","Box[Python] and Box[Animal] have no subtype relationship","Box[Python] == Box[Animal]"], ans:[2], multi:false, explain:"By default, type parameters in Scala are invariant. Even though Python <: Animal, Box[Python] is NOT a subtype of Box[Animal]. There is no subtyping relationship between them at all." },
+
+  { cat:"Variance & Generics", q:"Why does the compiler forbid <code>class Box[+A](var content: A)</code>?", opts:["Covariance doesn't exist in Scala","Because with var, you could assign a Box[Python] to Box[Animal], then write box.content = Bear(...) — putting a Bear into a Python box","Because + is an invalid symbol for generics","Because var is deprecated in Scala 3"], ans:[1], multi:false, explain:"If Box were covariant with a mutable field: val b: Box[Animal] = Box[Python](kaa). Then b.content = Bear(\"Baloo\") would compile (Bear <: Animal), but the actual box only holds Pythons. Type safety would be broken." },
+
+  { cat:"Variance & Generics", q:"What does <code>class ImmutableBox[+A](val content: A)</code> allow?", opts:["Nothing special","<code>val b: ImmutableBox[Animal] = ImmutableBox[Python](kaa)</code> — covariance lets you upcast","Modifying content after creation","Using ImmutableBox with primitive types only"], ans:[1], multi:false, explain:"Covariance (+A) means that if Python <: Animal, then ImmutableBox[Python] <: ImmutableBox[Animal]. This is safe because val content is read-only — you can never put a wrong type in." },
+
+  { cat:"Variance & Generics", q:"Contravariance (<code>-A</code>) means:", opts:["If Python <: Animal, then Serializer[Animal] <: Serializer[Python]","If Python <: Animal, then Serializer[Python] <: Serializer[Animal]","Subtyping is the same direction as the type parameter","Contravariance is not supported in Scala"], ans:[0], multi:false, explain:"Contravariance reverses the direction. A Serializer[Animal] can serialize ANY animal, including Pythons — so it's safe to use where a Serializer[Python] is expected. The subtyping goes 'contra' (opposite)." },
+
+  { cat:"Variance & Generics", q:"What does <code>A <: Animal</code> mean?", opts:["A is a supertype of Animal","A must be a subtype of Animal (upper bound)","A equals Animal","A is unrelated to Animal"], ans:[1], multi:false, explain:"<: is an upper type bound. A <: Animal means A can be Animal or any of its subtypes (Bear, Python, Mammal, Reptile). >: is a lower bound (A must be a supertype)." },
+
+  { cat:"Variance & Generics", q:"In a covariant <code>MyList[+A]</code>, why does <code>append</code> need <code>[B >: A]</code>?", code:"final def append[B >: A](ys: MyList[B]): MyList[B]", opts:["It's a Scala quirk with no real reason","Because you might append elements of a supertype — and the result list must accommodate both A and B","Because B must be a subtype of A","To make append return a different type"], ans:[1], multi:false, explain:"If you have a MyList[Python] and append a MyList[Animal], the result must be MyList[Animal] (the common supertype). B >: A ensures B is at least as general as A. The compiler requires this to maintain type safety with covariance." },
+
+  // ===== LAMBDA CALCULUS =====
+  { cat:"Lambda Calculus", q:"What does <code>(λx.x)a</code> evaluate to?", opts:["λx.x","a","x","λa.a"], ans:[1], multi:false, explain:"λx.x is the identity function: it returns its argument unchanged. Applying it to a (β-reduction: substitute x with a in the body) gives a." },
+
+  { cat:"Lambda Calculus", q:"What does <code>(λx.y)a</code> evaluate to?", opts:["a","x","y","λx.a"], ans:[2], multi:false, explain:"The body is y, which is a free variable (not bound to the parameter x). Substituting x with a in the body y doesn't change anything — y stays y." },
+
+  { cat:"Lambda Calculus", q:"What is <code>λxyz.xyz</code> equivalent to?", opts:["<code>λx.(λy.(λz.xyz))</code>","<code>λ(x,y,z).xyz</code>","<code>(λx.x)(λy.y)(λz.z)</code>","<code>λx.λy.λz.z</code>"], ans:[0], multi:false, explain:"This is currying in lambda calculus. Multi-parameter functions are syntactic sugar for nested single-parameter functions: λxyz.xyz = λx.(λy.(λz.xyz))." },
+
+  { cat:"Lambda Calculus", q:"What does β-reduction do?", opts:["Renames variables to avoid conflicts","Substitutes the argument into the function body (applying a function to its argument)","Removes unused variables","Converts functions to Church numerals"], ans:[1], multi:false, explain:"β-reduction is the core evaluation rule: (λx.body)arg → body[x := arg]. You replace every occurrence of x in the body with the argument. α-conversion is what renames variables." },
+
+  { cat:"Lambda Calculus", q:"What is Church numeral TWO?", opts:["<code>λf.λx.x</code>","<code>λf.λx.(f x)</code>","<code>λf.λx.(f(f x))</code>","<code>λf.λx.(f(f(f x)))</code>"], ans:[2], multi:false, explain:"Church numerals encode N as 'apply f N times'. ZERO = λf.λx.x (apply f 0 times). ONE = λf.λx.(f x). TWO = λf.λx.(f(f x)). THREE = λf.λx.(f(f(f x))). The number IS the count of f applications." },
+
+  // ===== FUNCTION1 / PARTIAL FUNCTION =====
+  { cat:"Functions", q:"What is <code>Function1[Int, Int]</code>?", opts:["A trait for functions that take one Int and return one Int — every lambda <code>Int => Int</code> is compiled to this","A special math function","A function that can only be called once","An abstract class for integer operations"], ans:[0], multi:false, explain:"In Scala, every function value is an object. Int => Int is sugar for Function1[Int, Int]. The lambda x => x*x is compiled into an anonymous class with an apply(x: Int): Int method. f(6) is sugar for f.apply(6)." },
+
+  { cat:"Functions", q:"What is a PartialFunction?", opts:["A partially applied function (some args fixed)","A function defined only for some values of its input type — may throw MatchError on others","A function that returns Option","A deprecated Scala feature"], ans:[1], multi:false, explain:"A PartialFunction[A, B] is defined only for certain inputs. Written as a pattern match block without 'match': { case Leaf(v) => v }. Calling it on an undefined input throws MatchError. You can check with isDefinedAt()." },
+
+  // ===== LISTS & COLLECTIONS =====
+  { cat:"For Comprehensions", q:"How are Scala Lists constructed internally?", opts:["As arrays","As linked lists using <code>::</code> (Cons) and <code>Nil</code> (empty)","As hash maps","As balanced trees"], ans:[1], multi:false, explain:"Scala's List is a singly-linked immutable list. 1 :: 2 :: 3 :: Nil builds the list from right to left. :: is right-associative: 1 :: (2 :: (3 :: Nil)). Each :: is a Cons cell with head and tail." },
+
+  { cat:"For Comprehensions", q:"What does this match?", code:"List(1, 2, 3, 4) match\n  case 1 :: 2 :: rest => s\"rest is $rest\"\n  case _ => \"other\"", opts:["\"other\"","\"rest is List(3, 4)\"","\"rest is List(2, 3, 4)\"","MatchError"], ans:[1], multi:false, explain:"The pattern 1 :: 2 :: rest matches a list starting with 1 and 2. rest captures everything after: List(3, 4). Pattern matching on :: deconstructs the linked list node by node." },
+
+  // ===== CUSTOM STRING INTERPOLATOR =====
+  { cat:"Scala Basics", q:"What does a custom string interpolator require?", code:"extension (sc: StringContext)\n  def hero(args: Any*): SuperHero = ...\n\nval h = hero\"$name,$power\"", opts:["A special compiler plugin","An extension method on <code>StringContext</code> matching the prefix name","A macro annotation","Importing scala.language.dynamics"], ans:[1], multi:false, explain:"Custom interpolators like hero\"...\" work because the compiler translates them to StringContext(...).hero(args). You define an extension method on StringContext with the same name as the prefix. sc.s(args*) reconstructs the full string." },
+
+  // ===== IMPLICIT CONVERSIONS =====
+  { cat:"Type Classes", q:"What does <code>implicit def</code> enable in this code?", code:"class IntWrapper(val n: Int) { def isOdd = n % 2 != 0 }\nimplicit def wrap(v: Int): IntWrapper = IntWrapper(v)\n19.isOdd", opts:["It makes IntWrapper a subtype of Int","When Int has no isOdd method, the compiler auto-converts Int to IntWrapper via the implicit function","It overrides Int's methods","It makes isOdd available on all types"], ans:[1], multi:false, explain:"When 19.isOdd is called and Int has no isOdd method, the compiler searches for an implicit conversion from Int to a type that has isOdd. It finds wrap and inserts the call automatically: wrap(19).isOdd." },
+
+  // ===== FUTURES =====
+  { cat:"Option / Try / Either", q:"What is a <code>Future[A]</code>?", opts:["A value computed in the past","A computation running asynchronously that eventually completes with Success(value) or Failure(exception)","A lazy val that computes on first access","A mutable variable that changes over time"], ans:[1], multi:false, explain:"Future[A] represents an async computation. It follows the same map/flatMap/for-comprehension pattern as Option and Try. onComplete lets you handle the result when it's ready, with pattern matching on Success/Failure." },
+
+  // ===== MIXED / TRICKY =====
+  { cat:"FP Principles", q:"Which of these are expressions (not statements)?", opts:["<code>if x > 0 then x else -x</code>","<code>println(\"hello\")</code>","<code>val y = 42</code>","<code>for { x <- xs } yield x * 2</code>"], ans:[0, 3], multi:true, explain:"An expression always returns a value. if/else with both branches returns a value. for/yield returns a collection. println returns Unit (side effect — more statement-like). val y = 42 is a declaration/statement." },
+
+  { cat:"Recursion", q:"What annotation verifies tail recursion at compile time?", opts:["<code>@recursive</code>","<code>@tailrec</code>","<code>@optimized</code>","<code>@inline</code>"], ans:[1], multi:false, explain:"@tailrec (from scala.annotation.tailrec) asks the compiler to verify the function is tail-recursive. If the recursive call is NOT the last operation, the compiler throws an error — catching the problem before runtime." },
+
+  { cat:"Variance & Generics", q:"In <code>MyList[+A]</code>, what type does <code>Empty</code> have?", opts:["MyList[Any]","MyList[Nothing] — making it a valid subtype of MyList[A] for any A","MyList[Null]","MyList[Unit]"], ans:[1], multi:false, explain:"Empty extends MyList[Nothing]. Since Nothing is the bottom type (subtype of everything) and MyList is covariant, MyList[Nothing] <: MyList[A] for any A. So Empty works as an empty MyList[Int], MyList[String], etc." },
+
+  { cat:"Scala Basics", q:"What does <code>@targetName(\"add\")</code> do?", code:"@targetName(\"add\")\ndef +(r: Rational) = ...", opts:["Renames the method to add in source code","Gives the + operator an explicit JVM bytecode name to avoid conflicts with Java","Makes the method private","Marks the method as deprecated"], ans:[1], multi:false, explain:"Scala allows operator symbols as method names, but the JVM uses mangled names for them. @targetName provides a clean JVM name (here 'add'), which helps interop with Java code and makes bytecode more readable." },
+];
+
+const cheatSheet = {
+  "FP Principles": [
+    "Pure function: same input → same output, zero side effects (no I/O, no mutation)",
+    "Referentially transparent: can replace call with its value without changing behavior",
+    "Immutability: data cannot be modified after creation → create new copies instead",
+    "Expression: always returns a value. Statement: performs an action, optional return. FP uses only expressions",
+    "if without else is a statement — always add else in FP"
+  ],
+  "Scala Basics": [
+    "val: evaluated at definition, never re-evaluated. var: mutable, forbidden in FP",
+    "lazy val: evaluated on first access, then cached. def: re-evaluated every call",
+    "Call-by-value (t: Long): argument evaluated once before entry",
+    "Call-by-name (t: => Long): argument re-evaluated each time t is used in body",
+    "Operators are methods: 1 + 2 = 1.+(2). Infix: a.method(b) = a method b",
+    "String interpolation: s\"$x\" (vars), f\"$x%2.2f\" (format), raw\"\\n\" (no escape)"
+  ],
+  "Functions": [
+    "Higher-order function (HOF): takes or returns a function. Int => Int is a type",
+    "Currying: (A, B) => C becomes A => B => C. Multiple param lists: def f(a: Int)(b: Int)",
+    "Partial application: fix some args → get new function. repeat(2)(_) gives String => String",
+    ".curried converts (A,B)=>C to A=>B=>C. Function.uncurried reverses it",
+    "Closure: function capturing variables from its enclosing scope",
+    "Function1[A,B] = A => B. Lambda x => x*x compiles to anonymous class with apply()",
+    "PartialFunction: defined only for some inputs, throws MatchError on undefined ones"
+  ],
+  "Recursion": [
+    "Recipe: 1. Base case (stop) → 2. Smaller problem → 3. Combine result",
+    "Tail-recursive: recursive call is the LAST operation (nothing wraps around it)",
+    "@tailrec: compiler verifies tail recursion. Fails at compile time if not tail-rec",
+    "Accumulator pattern: carry partial result forward → recursive call becomes last op",
+    "factorial: acc carries product. fibonacci: prev+curr carry the sliding window",
+    "Non-tail-rec on large input = StackOverflowError (each call = one stack frame)"
+  ],
+  "ADT & Patterns": [
+    "ADT = sealed trait + case classes. Sealed: all variants in same file, compiler checks exhaustiveness",
+    "case class gives: equals (structural), hashCode, toString, copy(), apply(), pattern matching",
+    ".copy(field = newVal): new instance with changed fields, original untouched",
+    "Pattern matching: exact value, variable extraction, nested structure, guard (if), type-only",
+    "Non-exhaustive match on sealed trait: compile warning, MatchError at runtime",
+    "enum: fixed set of named values. Built-in: ordinal, toString, values, fromOrdinal, valueOf"
+  ],
+  "For Comprehensions": [
+    "for { x <- xs } yield f(x)  →  xs.map(x => f(x))",
+    "for { x <- xs; y <- ys } yield g(x,y)  →  xs.flatMap(x => ys.map(y => g(x,y)))",
+    "if guard  →  .withFilter(predicate) or .filter(predicate)",
+    "flatMap = map then flatten. Avoids nested containers (Some(Some(x)) → Some(x))",
+    "Required methods: map (single generator), flatMap (multiple), withFilter (guards)",
+    "List is :: (Cons) + Nil. Pattern: case x :: y :: rest => ...",
+    "MyList helper with accumulator builds reversed → .reverse() at the end"
+  ],
+  "Type Classes": [
+    "Type class: trait Monoid[A] with operations. Instances via given, consumed via using",
+    "given IntMonoid: Monoid[Int] with { ... } — compiler resolves automatically",
+    "using m: Monoid[A] — compiler fills in the right given instance based on type A",
+    "Replaces Scala 2 implicit val/def with given/using",
+    "implicit def: auto-conversion when compiler can't find a method on a type"
+  ],
+  "Option / Try / Either": [
+    "Option[A]: Some(value) or None. Replaces null",
+    "Try[A]: Success(value) or Failure(exception). Wraps throwable computations",
+    "Either[E, A]: Left(error) or Right(success). map/flatMap act on Right",
+    "All support map, flatMap, filter → work with for-comprehensions",
+    "For-comprehension short-circuits: None/Failure/Left stops the chain immediately",
+    "Future[A]: async computation. Same map/flatMap pattern. onComplete for result",
+    "Nil = empty List, None = empty Option, Nothing = bottom type (0 instances), Unit = void, null = never use"
+  ],
+  "Variance & Generics": [
+    "Invariant Box[A] (default): Box[Python] has NO relation to Box[Animal]",
+    "Covariant Box[+A]: Python<:Animal ⇒ Box[Python]<:Box[Animal]. Safe for immutable/read-only",
+    "Contravariant Box[-A]: Python<:Animal ⇒ Box[Animal]<:Box[Python]. Safe for consumers/write-only",
+    "Mutable (var) + covariant = FORBIDDEN (could put Bear in Python box)",
+    "Type bounds: A <: B (upper, A subtype of B) · A >: B (lower, A supertype of B)",
+    "MyList[+A]: covariant. Empty = MyList[Nothing] (subtype of all MyList[A])",
+    "append[B >: A]: result widens to common supertype"
+  ],
+  "Lambda Calculus": [
+    "(λx.body)arg → body[x:=arg] (β-reduction: substitute argument into body)",
+    "Bound variable: appears as param AND in body. Free variable: not declared as param",
+    "α-conversion: rename param to avoid capture. Currying: λxyz = λx.(λy.(λz.body))",
+    "Church: ZERO = λf.λx.x · ONE = λf.λx.(fx) · TWO = λf.λx.(f(fx))",
+    "TRUE = λx.λy.x · FALSE = λx.λy.y",
+    "Y combinator: fixed-point combinator for recursion in pure lambda calculus"
+  ]
+};
+
+/* ============ ENGINE ============ */
+const app = document.getElementById('app');
+let pool=[], idx=0, score=0, wrong=[];
+let selectedOpts=[], isSubmitted=false;
+
+const getColor = c => {
+  if(c==='FP Principles') return 'var(--c-fp)';
+  if(c==='Scala Basics') return 'var(--c-scala)';
+  if(c==='Functions') return 'var(--c-scala)';
+  if(c==='Recursion') return 'var(--c-rec)';
+  if(c.startsWith('ADT')) return 'var(--c-adt)';
+  if(c.startsWith('For')) return 'var(--c-for)';
+  if(c==='Type Classes') return 'var(--c-for)';
+  if(c.startsWith('Option')||c==='Future') return 'var(--c-types)';
+  if(c.startsWith('Variance')) return 'var(--c-types)';
+  if(c==='Lambda Calculus') return 'var(--c-lambda)';
+  return 'var(--primary)';
+};
+
+const shuffle = a => { const r=[...a]; for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];} return r; };
+
+// Cheat sheet
+const lexList = document.getElementById('lexList');
+lexList.innerHTML = Object.keys(cheatSheet).map(c=>`<div class="cheat-cat"><div class="cheat-cat-title">${c}</div><ul>${cheatSheet[c].map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('');
+const lexFab=document.getElementById('lexFab'), lexModal=document.getElementById('lexModal'), lexClose=document.getElementById('lexClose');
+lexFab.onclick=()=>{lexModal.classList.add('open');lexModal.setAttribute('aria-hidden','false');};
+const closeLex=()=>{lexModal.classList.remove('open');lexModal.setAttribute('aria-hidden','true');};
+lexClose.onclick=closeLex; lexModal.addEventListener('click',e=>{if(e.target===lexModal)closeLex();});
+
+function renderStart(){
+  const grps = {
+    fp: ['FP Principles'],
+    scala: ['Scala Basics','Functions'],
+    rec: ['Recursion'],
+    adt: ['ADT & Patterns'],
+    forcomp: ['For Comprehensions'],
+    types: ['Type Classes','Option / Try / Either','Variance & Generics'],
+    lambda: ['Lambda Calculus']
+  };
+  const cnt = g => allQuestions.filter(x=>g.includes(x.cat)).length;
+
+  app.innerHTML=`<div class="start-card anim">
+    <p class="lead">Choisis un thème. Les questions et réponses sont mélangées à chaque tentative.</p>
+    <div class="modes">
+      <button class="mode m-all" data-t="all"><span class="label"><span class="dot"></span>Tous les thèmes</span><span class="count">${allQuestions.length} questions</span></button>
+      <button class="mode m-fp" data-t="fp"><span class="label"><span class="dot"></span>FP Principles</span><span class="count">${cnt(grps.fp)}q</span></button>
+      <button class="mode m-scala" data-t="scala"><span class="label"><span class="dot"></span>Scala, Functions & Currying</span><span class="count">${cnt(grps.scala)}q</span></button>
+      <button class="mode m-rec" data-t="rec"><span class="label"><span class="dot"></span>Recursion & Tail Recursion</span><span class="count">${cnt(grps.rec)}q</span></button>
+      <button class="mode m-adt" data-t="adt"><span class="label"><span class="dot"></span>ADT, Pattern Matching & Enums</span><span class="count">${cnt(grps.adt)}q</span></button>
+      <button class="mode m-for" data-t="forcomp"><span class="label"><span class="dot"></span>For Comprehensions & Collections</span><span class="count">${cnt(grps.forcomp)}q</span></button>
+      <button class="mode m-types" data-t="types"><span class="label"><span class="dot"></span>Types, Variance & Option/Try/Either</span><span class="count">${cnt(grps.types)}q</span></button>
+      <button class="mode m-lambda" data-t="lambda"><span class="label"><span class="dot"></span>Lambda Calculus</span><span class="count">${cnt(grps.lambda)}q</span></button>
+    </div></div>`;
+
+  app.querySelectorAll('.mode').forEach(b=>{
+    b.onclick=()=>{
+      const t=b.dataset.t;
+      if(t==='all') startQuiz(allQuestions);
+      else startQuiz(allQuestions.filter(x=>grps[t].includes(x.cat)));
+    };
+  });
+}
+
+function startQuiz(qs){
+  pool=shuffle(qs.map(q=>{
+    const oi=q.opts.map((t,i)=>({text:t,isCorrect:q.ans.includes(i)}));
+    return {cat:q.cat,q:q.q,code:q.code||null,multi:q.multi,opts:shuffle(oi),explain:q.explain||''};
+  }));
+  idx=0; score=0; wrong=[]; renderQuestion();
+}
+
+function renderQuestion(){
+  selectedOpts=[]; isSubmitted=false;
+  const it=pool[idx], prog=Math.round((idx/pool.length)*100), col=getColor(it.cat);
+  const codeBlock = it.code ? `<div class="qcode">${it.code.replace(/</g,'&lt;')}</div>` : '';
+
+  app.innerHTML=`<div class="anim">
+    <div class="bar-wrap"><div class="bar" style="width:${prog}%"></div></div>
+    <div class="meta"><span>Question ${idx+1} / ${pool.length}</span><span>Score : ${score}</span></div>
+    <div class="qcard">
+      <span class="pill" style="color:${col};background:color-mix(in srgb,${col} 10%,transparent)">${it.cat}</span>
+      ${it.multi?'<span class="pill pill-multi">Choix Multiples</span>':''}
+      <div class="qtext">${it.q}</div>
+      ${codeBlock}
+      <div class="opts" id="opts">${it.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="key">${String.fromCharCode(65+i)}</span><span>${o.text}</span></button>`).join('')}</div>
+      <div class="controls-row" id="cr">${it.multi?'<button class="btn btn-primary" id="ckBtn" disabled>Valider</button>':''}</div>
+    </div></div>`;
+
+  app.querySelectorAll('.opt').forEach(b=>{
+    b.onclick=()=>{
+      if(isSubmitted) return;
+      const i=+b.dataset.i;
+      if(!it.multi){selectedOpts=[i];submitAnswer();}
+      else{
+        if(selectedOpts.includes(i)){selectedOpts=selectedOpts.filter(v=>v!==i);b.classList.remove('selected');}
+        else{selectedOpts.push(i);b.classList.add('selected');}
+        document.getElementById('ckBtn').disabled=selectedOpts.length===0;
+      }
+    };
+  });
+  if(it.multi) document.getElementById('ckBtn').onclick=submitAnswer;
+}
+
+function submitAnswer(){
+  isSubmitted=true;
+  const it=pool[idx], btns=app.querySelectorAll('.opt'), cr=document.getElementById('cr');
+  let uc=0, ac=it.opts.filter(o=>o.isCorrect).length;
+
+  btns.forEach((b,j)=>{
+    b.disabled=true; b.classList.remove('selected');
+    const sel=selectedOpts.includes(j), cor=it.opts[j].isCorrect;
+    if(cor){b.classList.add('correct');if(sel)uc++;}
+    if(sel&&!cor) b.classList.add('wrong');
+  });
+
+  const ok=selectedOpts.length===ac&&uc===ac;
+  if(ok) score++;
+  else{
+    const ct=it.opts.filter(o=>o.isCorrect).map(o=>o.text).join('<br>');
+    const ut=selectedOpts.map(i=>it.opts[i].text).join('<br>');
+    wrong.push({q:it.q,cat:it.cat,correct:ct,yours:ut||'Aucune',explain:it.explain});
+  }
+
+  const explainHtml = it.explain ? `<div class="explain-box"><strong>💡 Explication :</strong> ${it.explain}</div>` : '';
+  cr.innerHTML=`${explainHtml}<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn btn-primary" id="nBtn">${idx+1===pool.length?'Résultats →':'Suivante →'}</button></div>`;
+  document.getElementById('nBtn').onclick=()=>{idx++;idx<pool.length?renderQuestion():renderResults();};
+}
+
+function renderResults(){
+  const t=pool.length, p=Math.round((score/t)*100);
+  let v,m,c;
+  if(p>=80){v="Excellent ! 🎉";m="Tu maîtrises le cours. Relis juste tes erreurs.";c="var(--ok)";}
+  else if(p>=60){v="Bien joué 👍";m="Base solide. Cible les points ratés ci-dessous.";c="var(--primary)";}
+  else{v="On s'accroche !";m="Pas de panique : relis la Cheat Sheet et recommence.";c="var(--bad)";}
+  const C=2*Math.PI*52, off=C*(1-score/t);
+
+  const rev=wrong.length?`<div class="review-title">À revoir (${wrong.length})</div>${wrong.map(w=>`<div class="rev-item">
+    <div class="rq">[${w.cat}] ${w.q}</div>
+    <div class="ra">Bonne(s) réponse(s) :<br><b>${w.correct}</b></div>
+    <div class="yours">Ta sélection :<br>${w.yours}</div>
+    ${w.explain?`<div class="rexplain">💡 ${w.explain}</div>`:''}
+  </div>`).join('')}`:`<p style="text-align:center;color:var(--ok);font-weight:600;margin-top:24px">Sans-faute 🏆</p>`;
+
+  app.innerHTML=`<div class="score-card anim">
+    <svg class="ring" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="52" fill="none" stroke="var(--bg-soft)" stroke-width="12"/>
+      <circle cx="60" cy="60" r="52" fill="none" stroke="${c}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1s ease"/>
+      <text x="60" y="58" text-anchor="middle" class="score-num" fill="var(--ink)" font-family="Fraunces">${score}/${t}</text>
+      <text x="60" y="76" text-anchor="middle" class="score-pct" fill="var(--ink-soft)">${p}%</text>
+    </svg>
+    <div class="verdict-big">${v}</div><div class="msg">${m}</div>
+    <div class="res-actions"><button class="btn btn-primary" id="home">Menu principal</button></div>
+  </div>${rev}`;
+  document.getElementById('home').onclick=renderStart;
+}
+
+renderStart();
+</script>
+</body>
+</html>
